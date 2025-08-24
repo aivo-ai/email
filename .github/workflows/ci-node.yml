@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.19.4]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+          
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        
+      - name: Check for deprecations and unmet peers
+        run: |
+          if pnpm install --dry-run 2>&1 | grep -i "deprecated\|warn"; then
+            echo "Found deprecations or warnings"
+            exit 1
+          fi
+          
+      - name: Type check
+        run: pnpm type-check
+        
+      - name: Lint
+        run: pnpm lint
+        
+      - name: Build
+        run: pnpm build
+        
+      - name: Unit tests
+        run: pnpm test
+        
+      - name: Install Playwright
+        run: pnpm exec playwright install --with-deps
+        
+      - name: E2E tests
+        run: pnpm test:e2e
+        
+      - name: Accessibility tests (axe)
+        run: pnpm test:a11y
+        
+      - name: Security headers check
+        run: pnpm test:security
+        
+      - name: Route contract tests
+        run: pnpm test:contracts
+        
+      - name: Link crawler tests
+        run: pnpm test:links
+        
+      - name: Lighthouse performance budgets
+        run: pnpm test:lighthouse
+        env:
+          LIGHTHOUSE_LCP_BUDGET: 2200
+          LIGHTHOUSE_INP_BUDGET: 200
+          LIGHTHOUSE_CLS_BUDGET: 0.02

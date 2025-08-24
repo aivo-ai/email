@@ -1,0 +1,23 @@
+{
+  "name": "@ceerion/tools",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test:a11y": "node scripts/a11y-test.js",
+    "test:security": "node scripts/security-headers.js",
+    "test:lighthouse": "node scripts/lighthouse-budget.js",
+    "test:links": "node scripts/link-crawler.js",
+    "build": "echo 'No build needed for tools'",
+    "lint": "echo 'No linting needed for tools'",
+    "type-check": "echo 'No type checking needed for tools'"
+  },
+  "dependencies": {
+    "axe-playwright": "^2.0.3",
+    "lighthouse": "^12.3.0",
+    "playwright": "^1.48.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.4"
+  }
+}
