@@ -12,7 +12,7 @@ import {
 export default async function mailRoutes(fastify: FastifyInstance) {
   // GET /mail/messages - List messages with pagination
   fastify.get<{ Querystring: ListMessagesQuery }>('/messages', {
-    preValidation: [fastify.authenticate],
+    preValidation: [(fastify as any).authenticate],
     schema: {
       querystring: {
         type: 'object',
@@ -28,12 +28,14 @@ export default async function mailRoutes(fastify: FastifyInstance) {
     }
   }, async (request: FastifyRequest<{ Querystring: ListMessagesQuery }>, reply: FastifyReply) => {
     try {
-      const userId = request.user?.userId
+      const user = (request as any).user
+      const userId = user?.userId
       if (!userId) {
         return reply.code(401).send({ error: 'Unauthorized' })
       }
       
-      const { page = 1, limit = 25, folder, search, hasAttachments, isRead } = request.query
+      const query = request.query as any
+      const { page = 1, limit = 25, folder, search, hasAttachments, isRead } = query
       
       // Validate with zod
       const validation = listMessagesSchema.safeParse({ page, limit, folder, search, hasAttachments, isRead })
@@ -126,7 +128,7 @@ export default async function mailRoutes(fastify: FastifyInstance) {
   
   // GET /mail/messages/:id - Get specific message
   fastify.get<{ Params: GetMessageParams }>('/messages/:id', {
-    preValidation: [fastify.authenticate],
+    preValidation: [(fastify as any).authenticate],
     schema: {
       params: {
         type: 'object',
@@ -138,12 +140,14 @@ export default async function mailRoutes(fastify: FastifyInstance) {
     }
   }, async (request: FastifyRequest<{ Params: GetMessageParams }>, reply: FastifyReply) => {
     try {
-      const userId = request.user?.userId
+      const user = (request as any).user
+      const userId = user?.userId
       if (!userId) {
         return reply.code(401).send({ error: 'Unauthorized' })
       }
       
-      const { id } = request.params
+      const params = request.params as any
+      const { id } = params
       
       const validation = getMessageSchema.safeParse({ id })
       if (!validation.success) {
@@ -195,7 +199,7 @@ export default async function mailRoutes(fastify: FastifyInstance) {
   
   // POST /mail/send - Send email via WebSocket to JMAP mock
   fastify.post<{ Body: SendEmailRequest }>('/send', {
-    preValidation: [fastify.authenticate],
+    preValidation: [(fastify as any).authenticate],
     schema: {
       body: {
         type: 'object',
@@ -225,13 +229,14 @@ export default async function mailRoutes(fastify: FastifyInstance) {
     }
   }, async (request: FastifyRequest<{ Body: SendEmailRequest }>, reply: FastifyReply) => {
     try {
-      const userId = request.user?.userId
-      const userEmail = request.user?.email
+      const user = (request as any).user
+      const userId = user?.userId
+      const userEmail = user?.email
       if (!userId || !userEmail) {
         return reply.code(401).send({ error: 'Unauthorized' })
       }
       
-      const emailData = request.body
+      const emailData = request.body as any
       
       const validation = sendEmailSchema.safeParse(emailData)
       if (!validation.success) {
@@ -253,7 +258,7 @@ export default async function mailRoutes(fastify: FastifyInstance) {
       
       // Note: WebSocket connection to JMAP mock will be implemented
       // For now, just return success
-      fastify.log.info('Email send request:', payload)
+      fastify.log.info('Email send request queued')
       
       reply.send({
         success: true,

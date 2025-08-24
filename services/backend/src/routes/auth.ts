@@ -2,10 +2,6 @@ import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { authenticateUser, createRefreshToken, validateRefreshToken, revokeRefreshToken } from '../auth/index.js'
 import { loginSchema, refreshTokenSchema, type LoginRequest, type RefreshTokenRequest } from '../schemas/backend.js'
 
-interface AuthenticatedRequest extends FastifyRequest {
-  user?: { userId: string; email: string }
-}
-
 export default async function authRoutes(fastify: FastifyInstance) {
   // POST /auth/login
   fastify.post<{ Body: LoginRequest }>('/login', {

@@ -1,5 +1,5 @@
 import Fastify from 'fastify'
-import type { FastifyInstance } from 'fastify'
+import type { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import cors from '@fastify/cors'
 import helmet from '@fastify/helmet'
 import rateLimit from '@fastify/rate-limit'
@@ -19,6 +19,12 @@ declare module '@fastify/jwt' {
   interface FastifyJWT {
     payload: { userId: string; email: string }
     user: { userId: string; email: string }
+  }
+}
+
+declare module 'fastify' {
+  interface FastifyInstance {
+    authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>
   }
 }
 
@@ -86,7 +92,7 @@ async function registerPlugins() {
 }
 
 // Authentication hook
-server.decorate('authenticate', async function(request: any, reply: any) {
+server.decorate('authenticate', async function(request: FastifyRequest, reply: FastifyReply) {
   try {
     await request.jwtVerify()
   } catch (err) {
@@ -110,10 +116,10 @@ async function registerRoutes() {
 // WebSocket endpoint for JMAP mock communication
 server.register(async function (fastify) {
   fastify.get('/ws/jmap', { websocket: true }, (connection, req) => {
-    connection.socket.on('message', (message) => {
+    connection.socket.on('message', (message: any) => {
       try {
         const data = JSON.parse(message.toString())
-        fastify.log.info('JMAP WebSocket message:', data)
+        fastify.log.info('JMAP WebSocket message received')
         
         // Echo back for now - will integrate with actual JMAP mock
         connection.socket.send(JSON.stringify({
@@ -122,7 +128,7 @@ server.register(async function (fastify) {
           data: { status: 'received' }
         }))
       } catch (error) {
-        fastify.log.error('WebSocket message error:', error)
+        fastify.log.error('WebSocket message error')
       }
     })
     
@@ -162,7 +168,7 @@ const gracefulShutdown = async (signal: string) => {
     await server.close()
     process.exit(0)
   } catch (error) {
-    server.log.error('Error during shutdown:', error)
+    server.log.error('Error during shutdown')
     process.exit(1)
   }
 }

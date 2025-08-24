@@ -9,7 +9,7 @@ import {
 export default async function policyRoutes(fastify: FastifyInstance) {
   // GET /policy/trusted-senders - List trusted senders
   fastify.get('/trusted-senders', {
-    preValidation: [fastify.authenticate],
+    preValidation: [(fastify as any).authenticate],
     schema: {
       querystring: {
         type: 'object',
@@ -22,7 +22,8 @@ export default async function policyRoutes(fastify: FastifyInstance) {
     }
   }, async (request: FastifyRequest, reply: FastifyReply) => {
     try {
-      const userId = request.user?.userId
+      const user = (request as any).user
+      const userId = user?.userId
       if (!userId) {
         return reply.code(401).send({ error: 'Unauthorized' })
       }
@@ -86,7 +87,7 @@ export default async function policyRoutes(fastify: FastifyInstance) {
   
   // POST /policy/trusted-senders - Add trusted sender
   fastify.post<{ Body: AddTrustedSenderRequest }>('/trusted-senders', {
-    preValidation: [fastify.authenticate],
+    preValidation: [(fastify as any).authenticate],
     schema: {
       body: {
         type: 'object',
@@ -101,12 +102,13 @@ export default async function policyRoutes(fastify: FastifyInstance) {
     }
   }, async (request: FastifyRequest<{ Body: AddTrustedSenderRequest }>, reply: FastifyReply) => {
     try {
-      const userId = request.user?.userId
+      const user = (request as any).user
+      const userId = user?.userId
       if (!userId) {
         return reply.code(401).send({ error: 'Unauthorized' })
       }
       
-      const senderData = request.body
+      const senderData = request.body as any
       
       const validation = addTrustedSenderSchema.safeParse(senderData)
       if (!validation.success) {
@@ -161,7 +163,7 @@ export default async function policyRoutes(fastify: FastifyInstance) {
   
   // DELETE /policy/trusted-senders/:id - Remove trusted sender
   fastify.delete<{ Params: TrustedSenderParams }>('/trusted-senders/:id', {
-    preValidation: [fastify.authenticate],
+    preValidation: [(fastify as any).authenticate],
     schema: {
       params: {
         type: 'object',
@@ -173,12 +175,14 @@ export default async function policyRoutes(fastify: FastifyInstance) {
     }
   }, async (request: FastifyRequest<{ Params: TrustedSenderParams }>, reply: FastifyReply) => {
     try {
-      const userId = request.user?.userId
+      const user = (request as any).user
+      const userId = user?.userId
       if (!userId) {
         return reply.code(401).send({ error: 'Unauthorized' })
       }
       
-      const { id } = request.params
+      const params = request.params as any
+      const { id } = params
       
       const result = await db.query(
         'DELETE FROM trusted_senders WHERE id = $1 AND user_id = $2 RETURNING id',
