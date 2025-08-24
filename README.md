@@ -15,7 +15,7 @@ A modern email platform built with pnpm monorepo architecture, hosted at **mail.
 
 ## Project Structure
 
-```
+```text
 ├── apps/
 │   ├── webmail/          # Main webmail interface (port 5173)
 │   └── admin-console/    # Admin dashboard (port 5174)
@@ -65,11 +65,12 @@ pnpm dev
 ```
 
 This will start:
-- Webmail: http://localhost:5173
-- Admin Console: http://localhost:5174
-- JMAP Mock: http://localhost:8090
-- Media Proxy: http://localhost:8091
-- Branding: http://localhost:8092
+
+- Webmail: <http://localhost:5173>
+- Admin Console: <http://localhost:5174>
+- JMAP Mock: <http://localhost:8090>
+- Media Proxy: <http://localhost:8091>
+- Branding: <http://localhost:8092>
 
 ### Individual Services
 
@@ -105,6 +106,7 @@ pnpm test:lighthouse  # Performance budgets
 ## Domain Security
 
 This platform enforces single-domain security:
+
 - **Domain**: ceerion.com
 - **Host**: mail.ceerion.com
 
@@ -113,6 +115,7 @@ All services validate the domain and reject requests from unauthorized hosts in 
 ## CI/CD
 
 The project includes comprehensive CI pipeline with:
+
 - Zero deprecation warnings policy
 - Zero unmet peer dependencies policy
 - TypeScript strict mode

@@ -1,0 +1,586 @@
+openapi: 3.1.0
+info:
+  title: Ceerion Email Platform API
+  version: 1.0.0
+  description: Email platform API for mail.ceerion.com
+  contact:
+    name: Ceerion Engineering
+    url: https://mail.ceerion.com
+servers:
+  - url: https://mail.ceerion.com/api/v1
+    description: Production API
+  - url: http://localhost:3000/api/v1
+    description: Development API
+
+paths:
+  /auth/login:
+    post:
+      summary: Authenticate user
+      operationId: login
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  pattern: "^[a-zA-Z0-9._%+-]+@ceerion\\.com$"
+                password:
+                  type: string
+                  minLength: 8
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [accessToken, refreshToken, user]
+                properties:
+                  accessToken:
+                    type: string
+                  refreshToken:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/refresh:
+    post:
+      summary: Refresh access token
+      operationId: refreshToken
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [accessToken]
+                properties:
+                  accessToken:
+                    type: string
+        '401':
+          description: Invalid refresh token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/me:
+    get:
+      summary: Get current user profile
+      operationId: getCurrentUser
+      tags: [Users]
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /mail/messages:list:
+    post:
+      summary: List email messages
+      operationId: listMessages
+      tags: [Mail]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                labelIds:
+                  type: array
+                  items:
+                    type: string
+                query:
+                  type: string
+                pageSize:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  default: 20
+                pageToken:
+                  type: string
+      responses:
+        '200':
+          description: Messages list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [messages, resultSizeEstimate]
+                properties:
+                  messages:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Message'
+                  nextPageToken:
+                    type: string
+                  resultSizeEstimate:
+                    type: integer
+
+  /mail/messages:get:
+    post:
+      summary: Get email message
+      operationId: getMessage
+      tags: [Mail]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id]
+              properties:
+                id:
+                  type: string
+                format:
+                  type: string
+                  enum: [minimal, full, raw, metadata]
+                  default: full
+      responses:
+        '200':
+          description: Message details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '404':
+          description: Message not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /mail/send:
+    post:
+      summary: Send email message
+      operationId: sendMessage
+      tags: [Mail]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendRequest'
+      responses:
+        '200':
+          description: Message sent
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, threadId]
+                properties:
+                  id:
+                    type: string
+                  threadId:
+                    type: string
+                  labelIds:
+                    type: array
+                    items:
+                      type: string
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /deliverability/dmarc-reports:summary:
+    post:
+      summary: Get DMARC reports summary
+      operationId: getDmarcSummary
+      tags: [Deliverability]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                startDate:
+                  type: string
+                  format: date
+                endDate:
+                  type: string
+                  format: date
+                aggregateBy:
+                  type: string
+                  enum: [day, week, month]
+                  default: day
+      responses:
+        '200':
+          description: DMARC summary
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [summary, totalMessages, passRate]
+                properties:
+                  summary:
+                    type: array
+                    items:
+                      type: object
+                      required: [date, passed, failed, total]
+                      properties:
+                        date:
+                          type: string
+                          format: date
+                        passed:
+                          type: integer
+                        failed:
+                          type: integer
+                        total:
+                          type: integer
+                  totalMessages:
+                    type: integer
+                  passRate:
+                    type: number
+                    format: float
+
+  /policy/trusted-senders:
+    get:
+      summary: List trusted senders
+      operationId: listTrustedSenders
+      tags: [Policy]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: pageToken
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Trusted senders list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [senders]
+                properties:
+                  senders:
+                    type: array
+                    items:
+                      type: object
+                      required: [email, addedAt]
+                      properties:
+                        email:
+                          type: string
+                          format: email
+                          pattern: "^[a-zA-Z0-9._%+-]+@ceerion\\.com$"
+                        displayName:
+                          type: string
+                        addedAt:
+                          type: string
+                          format: date-time
+                        addedBy:
+                          type: string
+                  nextPageToken:
+                    type: string
+    post:
+      summary: Add trusted sender
+      operationId: addTrustedSender
+      tags: [Policy]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  pattern: "^[a-zA-Z0-9._%+-]+@ceerion\\.com$"
+                displayName:
+                  type: string
+      responses:
+        '201':
+          description: Trusted sender added
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success]
+                properties:
+                  success:
+                    type: boolean
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      required: [id, email, displayName, isActive]
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          format: email
+          pattern: "^[a-zA-Z0-9._%+-]+@ceerion\\.com$"
+        displayName:
+          type: string
+        avatarUrl:
+          type: string
+          format: uri
+        isActive:
+          type: boolean
+        lastLoginAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    Message:
+      type: object
+      required: [id, threadId, labelIds, snippet, sizeEstimate]
+      properties:
+        id:
+          type: string
+        threadId:
+          type: string
+        labelIds:
+          type: array
+          items:
+            type: string
+        snippet:
+          type: string
+        sizeEstimate:
+          type: integer
+        historyId:
+          type: string
+        internalDate:
+          type: string
+          format: date-time
+        payload:
+          type: object
+          properties:
+            partId:
+              type: string
+            mimeType:
+              type: string
+            filename:
+              type: string
+            headers:
+              type: array
+              items:
+                type: object
+                required: [name, value]
+                properties:
+                  name:
+                    type: string
+                  value:
+                    type: string
+            body:
+              type: object
+              properties:
+                size:
+                  type: integer
+                data:
+                  type: string
+                  format: byte
+            parts:
+              type: array
+              items:
+                $ref: '#/components/schemas/MessagePart'
+
+    MessagePart:
+      type: object
+      properties:
+        partId:
+          type: string
+        mimeType:
+          type: string
+        filename:
+          type: string
+        headers:
+          type: array
+          items:
+            type: object
+            required: [name, value]
+            properties:
+              name:
+                type: string
+              value:
+                type: string
+        body:
+          type: object
+          properties:
+            size:
+              type: integer
+            data:
+              type: string
+              format: byte
+
+    Label:
+      type: object
+      required: [id, name, type]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [system, user]
+        messageListVisibility:
+          type: string
+          enum: [show, hide]
+        labelListVisibility:
+          type: string
+          enum: [labelShow, labelShowIfUnread, labelHide]
+        messagesTotal:
+          type: integer
+        messagesUnread:
+          type: integer
+        threadsTotal:
+          type: integer
+        threadsUnread:
+          type: integer
+
+    SendRequest:
+      type: object
+      required: [to, subject]
+      properties:
+        to:
+          type: array
+          items:
+            type: object
+            required: [email]
+            properties:
+              email:
+                type: string
+                format: email
+                pattern: "^[a-zA-Z0-9._%+-]+@ceerion\\.com$"
+              name:
+                type: string
+        cc:
+          type: array
+          items:
+            type: object
+            required: [email]
+            properties:
+              email:
+                type: string
+                format: email
+                pattern: "^[a-zA-Z0-9._%+-]+@ceerion\\.com$"
+              name:
+                type: string
+        bcc:
+          type: array
+          items:
+            type: object
+            required: [email]
+            properties:
+              email:
+                type: string
+                format: email
+                pattern: "^[a-zA-Z0-9._%+-]+@ceerion\\.com$"
+              name:
+                type: string
+        subject:
+          type: string
+          maxLength: 998
+        textBody:
+          type: string
+        htmlBody:
+          type: string
+        attachments:
+          type: array
+          items:
+            type: object
+            required: [filename, data, mimeType]
+            properties:
+              filename:
+                type: string
+              data:
+                type: string
+                format: byte
+              mimeType:
+                type: string
+              size:
+                type: integer
+        replyTo:
+          type: object
+          properties:
+            email:
+              type: string
+              format: email
+              pattern: "^[a-zA-Z0-9._%+-]+@ceerion\\.com$"
+            name:
+              type: string
+        threadId:
+          type: string
+
+    Error:
+      type: object
+      required: [error, message]
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        code:
+          type: integer
+        details:
+          type: object

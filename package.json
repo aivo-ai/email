@@ -25,7 +25,8 @@
     "test": "pnpm -r test",
     "test:e2e": "pnpm -r test:e2e",
     "lint": "pnpm -r lint",
-    "type-check": "pnpm -r type-check"
+    "type-check": "pnpm -r type-check",
+    "codegen": "pnpm --filter @ceerion/sdk-web codegen && pnpm --filter @ceerion/sdk-node codegen"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
