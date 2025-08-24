@@ -156,14 +156,14 @@ async function registerRoutes() {
 
 // WebSocket endpoint for JMAP mock communication
 server.register(async function (fastify) {
-  fastify.get('/ws/jmap', { websocket: true }, (connection, req) => {
-    connection.socket.on('message', (message: any) => {
+  fastify.get('/ws/jmap', { websocket: true }, (connection: any, req: any) => {
+    connection.on('message', (message: any) => {
       try {
         const data = JSON.parse(message.toString())
         fastify.log.info('JMAP WebSocket message received')
         
         // Echo back for now - will integrate with actual JMAP mock
-        connection.socket.send(JSON.stringify({
+        connection.send(JSON.stringify({
           type: 'response',
           requestId: data.requestId,
           data: { status: 'received' }
@@ -173,7 +173,7 @@ server.register(async function (fastify) {
       }
     })
     
-    connection.socket.on('close', () => {
+    connection.on('close', () => {
       fastify.log.info('JMAP WebSocket connection closed')
     })
   })
