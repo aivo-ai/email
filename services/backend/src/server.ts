@@ -42,6 +42,32 @@ const server: FastifyInstance = Fastify({
 
 // Register plugins
 async function registerPlugins() {
+  // Request logging and correlation ID
+  server.addHook('onRequest', async (request, reply) => {
+    const correlationId = `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    ;(request as any).correlationId = correlationId
+    reply.header('x-correlation-id', correlationId)
+    
+    server.log.info({
+      correlationId,
+      method: request.method,
+      url: request.url,
+      userAgent: request.headers['user-agent'],
+      ip: request.ip
+    }, 'Request started')
+  })
+
+  server.addHook('onResponse', async (request, reply) => {
+    const correlationId = (request as any).correlationId
+    server.log.info({
+      correlationId,
+      method: request.method,
+      url: request.url,
+      statusCode: reply.statusCode,
+      responseTime: reply.getResponseTime()
+    }, 'Request completed')
+  })
+
   // Security
   await server.register(helmet, {
     contentSecurityPolicy: {
@@ -54,7 +80,7 @@ async function registerPlugins() {
     }
   })
 
-  // CORS - restrict to ceerion.com and mail.ceerion.com
+  // CORS - restrict to ceerion.com and localhost dev ports
   await server.register(cors, {
     origin: (origin, callback) => {
       if (!origin) return callback(null, true) // Allow same-origin requests
@@ -62,8 +88,13 @@ async function registerPlugins() {
       const allowedOrigins = [
         'https://ceerion.com',
         'https://mail.ceerion.com',
-        'http://localhost:3000', // Development
-        'http://localhost:5173'  // Vite dev server
+        'http://localhost:3000',
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'http://localhost:8080',
+        'http://localhost:8090',
+        'http://localhost:8091',
+        'http://localhost:8092'
       ]
       
       if (allowedOrigins.includes(origin)) {
@@ -107,7 +138,17 @@ server.get('/health', async (request, reply) => {
 
 // Register routes
 async function registerRoutes() {
-  await server.register(authRoutes, { prefix: '/auth' })
+  // Auth routes with specific rate limiting
+  await server.register(async function (fastify) {
+    await fastify.register(rateLimit, {
+      max: 10, // 10 requests per minute for auth
+      timeWindow: '1 minute',
+      skipOnError: false,
+      keyGenerator: (request) => request.ip
+    })
+    await fastify.register(authRoutes)
+  }, { prefix: '/auth' })
+  
   await server.register(userRoutes, { prefix: '/users' })
   await server.register(mailRoutes, { prefix: '/mail' })
   await server.register(policyRoutes, { prefix: '/policy' })
@@ -187,7 +228,7 @@ const start = async () => {
     await registerRoutes()
     
     // Start listening
-    const port = parseInt(process.env.PORT || '3001')
+    const port = parseInt(process.env.PORT || '8080')
     const host = process.env.HOST || '0.0.0.0'
     
     await server.listen({ port, host })
