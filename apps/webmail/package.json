@@ -1,29 +1,38 @@
 {
-  "name": "ceerion-enterprise-email",
+  "name": "@ceerion/webmail",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:admin": "vite --config vite.admin.config.js --port 5174",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
+    "lucide-react": "^0.541.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-router-dom": "^6.28.0"
+    "react-hotkeys-hook": "^5.1.0",
+    "react-router-dom": "^6.28.0",
+    "socket.io-client": "^4.8.1",
+    "node-fetch": "^3.3.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
+    "@playwright/test": "^1.49.0",
     "@types/react": "^19.0.3",
     "@types/react-dom": "^19.0.2",
-    "@vitejs/plugin-react": "^4.4.4",
+    "@vitejs/plugin-react": "^5.0.1",
     "eslint": "^9.17.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.17",
     "globals": "^15.14.0",
-    "vite": "^5.4.11"
+    "vite": "^7.1.2",
+    "vitest": "^3.0.3"
   }
 }

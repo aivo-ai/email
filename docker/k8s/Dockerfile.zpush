@@ -1,0 +1,49 @@
+# Z-Push ActiveSync server
+FROM php:8.2-apache
+
+# Install required PHP extensions and packages
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libpq-dev \
+        libxml2-dev \
+        libzip-dev \
+        unzip \
+        git \
+        && docker-php-ext-install \
+        pdo_pgsql \
+        soap \
+        zip \
+        && rm -rf /var/lib/apt/lists/*
+
+# Download and install Z-Push
+RUN cd /tmp && \
+    git clone https://github.com/Z-Hub/Z-Push.git && \
+    cp -R Z-Push/src/* /var/www/html/ && \
+    rm -rf Z-Push
+
+# Create required directories
+RUN mkdir -p /var/lib/z-push \
+             /var/log/z-push \
+             && chown -R www-data:www-data /var/lib/z-push /var/log/z-push
+
+# Copy configuration files
+COPY z-push.conf /etc/apache2/sites-available/
+COPY config.php /var/www/html/config.php
+
+# Enable the site and required modules
+RUN a2ensite z-push && \
+    a2enmod rewrite ssl headers && \
+    a2dissite 000-default
+
+# Set proper permissions
+RUN chown -R www-data:www-data /var/www/html
+
+# Expose HTTP and HTTPS ports
+EXPOSE 80 443
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost/Microsoft-Server-ActiveSync || exit 1
+
+# Start Apache
+CMD ["apache2-foreground"]

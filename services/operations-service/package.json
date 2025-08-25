@@ -1,0 +1,37 @@
+{
+  "name": "@mail/operations-service",
+  "version": "1.0.0",
+  "description": "Email operations service for DMARC, DSN, TLS-RPT, and deliverability",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "test": "vitest",
+    "lint": "eslint src/",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "fastify": "^4.28.1",
+    "@fastify/cors": "^9.0.1",
+    "@fastify/helmet": "^11.1.1",
+    "pg": "^8.11.3",
+    "zod": "^3.23.8",
+    "nodemailer": "^6.9.13",
+    "xml2js": "^0.6.2",
+    "cron": "^3.1.7",
+    "pino": "^9.3.2",
+    "pino-pretty": "^11.2.2",
+    "mailparser": "^3.7.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.9",
+    "@types/pg": "^8.11.6",
+    "@types/xml2js": "^0.4.14",
+    "@types/nodemailer": "^6.4.15",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.3",
+    "vitest": "^2.0.3",
+    "eslint": "^9.6.0"
+  }
+}

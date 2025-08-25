@@ -1,0 +1,39 @@
+# Autodiscover service for email clients
+FROM php:8.2-apache
+
+# Install required PHP extensions
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libpq-dev \
+        libxml2-dev \
+        && docker-php-ext-install \
+        pdo_pgsql \
+        xml \
+        && rm -rf /var/lib/apt/lists/*
+
+# Create autodiscover directory
+RUN mkdir -p /var/www/html/autodiscover \
+             /var/www/html/Autodiscover
+
+# Copy autodiscover configuration
+COPY autodiscover.php /var/www/html/autodiscover/autodiscover.xml
+COPY autodiscover.php /var/www/html/Autodiscover/Autodiscover.xml
+COPY apache-autodiscover.conf /etc/apache2/sites-available/autodiscover.conf
+
+# Enable the site and modules
+RUN a2ensite autodiscover && \
+    a2enmod rewrite ssl headers && \
+    a2dissite 000-default
+
+# Set proper permissions
+RUN chown -R www-data:www-data /var/www/html
+
+# Expose HTTP and HTTPS ports  
+EXPOSE 80 443
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD curl -f http://localhost/autodiscover/autodiscover.xml || exit 1
+
+# Start Apache
+CMD ["apache2-foreground"]

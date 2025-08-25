@@ -1,0 +1,23 @@
+apiVersion: v2
+name: mail-edge
+description: Edge mail services Helm chart for Z-Push ActiveSync and Autodiscover
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - email
+  - mail
+  - activesync
+  - zpush
+  - autodiscover
+home: https://github.com/aivo-ai/email
+sources:
+  - https://github.com/aivo-ai/email
+maintainers:
+  - name: Aivo AI Team
+    email: support@aivo.ai
+dependencies:
+  - name: mail-core
+    version: "0.1.0"
+    repository: "file://../mail-core"
+    condition: mail-core.enabled

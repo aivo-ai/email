@@ -1,0 +1,53 @@
+{
+  "name": "@mail/dlp-service",
+  "version": "1.0.0",
+  "description": "Data Loss Prevention service for email scanning and policy enforcement",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "test": "jest",
+    "lint": "eslint src --ext .ts",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "zod": "^3.22.4",
+    "winston": "^3.11.0",
+    "multer": "^1.4.5-lts.1",
+    "sharp": "^0.33.1",
+    "pdf-parse": "^1.1.1",
+    "mammoth": "^1.6.0",
+    "xlsx": "^0.18.5",
+    "cheerio": "^1.0.0-rc.12",
+    "crypto": "^1.0.1",
+    "helmet": "^7.1.0",
+    "cors": "^2.8.5",
+    "express-rate-limit": "^7.1.5",
+    "compression": "^1.7.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@types/express": "^4.17.21",
+    "@types/multer": "^1.4.11",
+    "@types/pdf-parse": "^1.1.4",
+    "typescript": "^5.3.3",
+    "tsx": "^4.6.2",
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.8",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0"
+  },
+  "keywords": [
+    "dlp",
+    "data-loss-prevention",
+    "pii",
+    "pci",
+    "phi",
+    "compliance",
+    "scanning"
+  ]
+}

@@ -18,9 +18,6 @@ export default defineConfig({
       }
     }
   },
-  css: {
-    postcss: {}
-  },
   define: {
     'process.env.DOMAIN': JSON.stringify('ceerion.com'),
     'process.env.HOST': JSON.stringify('mail.ceerion.com')

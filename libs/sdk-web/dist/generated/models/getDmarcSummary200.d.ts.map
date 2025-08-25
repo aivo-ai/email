@@ -1,0 +1,1 @@
+{"version":3,"file":"getDmarcSummary200.d.ts","sourceRoot":"","sources":["../../../src/generated/models/getDmarcSummary200.ts"],"names":[],"mappings":"AAAA;;;;;;GAMG;AACH,OAAO,KAAK,EAAE,6BAA6B,EAAE,MAAM,iCAAiC,CAAC;AAErF,MAAM,MAAM,kBAAkB,GAAG;IAC/B,OAAO,EAAE,6BAA6B,EAAE,CAAC;IACzC,aAAa,EAAE,MAAM,CAAC;IACtB,QAAQ,EAAE,MAAM,CAAC;CAClB,CAAC"}

@@ -1,0 +1,28 @@
+apiVersion: v2
+name: mail-core
+description: Core mail services Helm chart for enterprise email platform
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - email
+  - mail
+  - postfix
+  - dovecot
+  - opendkim
+  - rspamd
+home: https://github.com/aivo-ai/email
+sources:
+  - https://github.com/aivo-ai/email
+maintainers:
+  - name: Aivo AI Team
+    email: support@aivo.ai
+dependencies:
+  - name: postgresql
+    version: "~12.0.0"
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+  - name: redis
+    version: "~17.0.0"
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled

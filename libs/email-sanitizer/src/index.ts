@@ -8,6 +8,8 @@ const purify = DOMPurify(window as any)
 export interface SanitizeOptions {
   allowImages?: boolean
   mediaProxyUrl?: string
+  cidEndpointUrl?: string  // For resolving cid: URLs
+  messageId?: string       // Message ID for CID resolution
 }
 
 /**
@@ -15,9 +17,15 @@ export interface SanitizeOptions {
  * - Strips all scripts and potentially dangerous content
  * - Replaces img src with data-ce-src to block images by default
  * - Optionally allows images through media proxy
+ * - Resolves cid: URLs to CID endpoint
  */
 export function sanitizeEmailHtml(html: string, options: SanitizeOptions = {}): string {
-  const { allowImages = false, mediaProxyUrl = 'http://localhost:8091/proxy' } = options
+  const { 
+    allowImages = false, 
+    mediaProxyUrl = 'http://localhost:8091/proxy',
+    cidEndpointUrl = '/api/media/cid',
+    messageId 
+  } = options
 
   // Configure DOMPurify
   const config = {
@@ -65,12 +73,21 @@ export function sanitizeEmailHtml(html: string, options: SanitizeOptions = {}): 
       // Always set data-ce-src for frontend to decide
       img.setAttribute('data-ce-src', originalSrc)
       
-      if (allowImages && mediaProxyUrl) {
-        // Route through media proxy
+      // Handle CID (Content-ID) URLs
+      if (originalSrc.startsWith('cid:') && messageId && cidEndpointUrl) {
+        const cid = originalSrc.substring(4) // Remove 'cid:' prefix
+        const cidUrl = `${cidEndpointUrl}/${messageId}/${encodeURIComponent(cid)}`
+        
+        // CID images are inline attachments, always allow them
+        img.setAttribute('src', cidUrl)
+        img.setAttribute('data-ce-cid', cid)
+        img.removeAttribute('data-ce-blocked')
+      } else if (allowImages && mediaProxyUrl && (originalSrc.startsWith('http://') || originalSrc.startsWith('https://'))) {
+        // Route external images through media proxy
         const proxiedUrl = `${mediaProxyUrl}?url=${encodeURIComponent(originalSrc)}`
         img.setAttribute('src', proxiedUrl)
-      } else {
-        // Block image by removing src
+      } else if (!originalSrc.startsWith('cid:')) {
+        // Block external image by removing src (but not CID images)
         img.removeAttribute('src')
         img.setAttribute('data-ce-blocked', 'true')
         img.setAttribute('alt', img.getAttribute('alt') || 'Image blocked for security')
@@ -174,6 +191,7 @@ export function generateEmailPreview(html: string, maxLength: number = 150): str
 export function detectUnsafeContent(html: string): {
   hasScripts: boolean
   hasExternalImages: boolean
+  hasInlineImages: boolean
   hasExternalLinks: boolean
   hasDangerousAttributes: boolean
 } {
@@ -196,6 +214,12 @@ export function detectUnsafeContent(html: string): {
     const src = img.getAttribute('src')
     return src && (src.startsWith('http://') || src.startsWith('https://'))
   })
+  
+  const hasInlineImages = Array.from(container.querySelectorAll('img')).some(img => {
+    const src = img.getAttribute('src')
+    return src && src.startsWith('cid:')
+  })
+  
   const hasExternalLinks = Array.from(container.querySelectorAll('a')).some(link => {
     const href = link.getAttribute('href')
     return href && (href.startsWith('http://') || href.startsWith('https://'))
@@ -204,6 +228,7 @@ export function detectUnsafeContent(html: string): {
   return {
     hasScripts,
     hasExternalImages,
+    hasInlineImages,
     hasExternalLinks,
     hasDangerousAttributes
   }

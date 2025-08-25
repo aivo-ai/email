@@ -1,0 +1,1 @@
+{"version":3,"file":"listMessagesBody.d.ts","sourceRoot":"","sources":["../../../src/generated/models/listMessagesBody.ts"],"names":[],"mappings":"AAAA;;;;;;GAMG;AAEH,MAAM,MAAM,gBAAgB,GAAG;IAC7B,QAAQ,CAAC,EAAE,MAAM,EAAE,CAAC;IACpB,KAAK,CAAC,EAAE,MAAM,CAAC;IACf;;;OAGG;IACH,QAAQ,CAAC,EAAE,MAAM,CAAC;IAClB,SAAS,CAAC,EAAE,MAAM,CAAC;CACpB,CAAC"}

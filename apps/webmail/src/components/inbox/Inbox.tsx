@@ -2,11 +2,11 @@ import { useState, useEffect, useContext } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { AuthContext, UserContext } from '../../App'
 import './Inbox.css'
-import Sidebar from './Sidebar'
-import EmailList from './EmailList'
-import EmailView from './EmailView'
-import ComposeEmail from './ComposeEmail'
-import UserMenu from './UserMenu'
+import Sidebar from './Sidebar.tsx'
+import EmailList from './EmailList.tsx'
+import EmailView from './EmailView.tsx'
+import ComposeEmail from './ComposeEmail.tsx'
+import UserMenu from './UserMenu.tsx'
 
 interface Email {
   id: number
@@ -256,7 +256,6 @@ CEERION IT Team`,
             selectedEmails={selectedEmails}
             setSelectedEmails={setSelectedEmails}
             onStar={handleStarEmail}
-            currentFolder={selectedFolder}
           />
         )}
       </div>

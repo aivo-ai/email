@@ -1,0 +1,1 @@
+{"version":3,"file":"getDmarcSummaryBody.d.ts","sourceRoot":"","sources":["../../../src/generated/models/getDmarcSummaryBody.ts"],"names":[],"mappings":"AAAA;;;;;;GAMG;AACH,OAAO,KAAK,EAAE,8BAA8B,EAAE,MAAM,kCAAkC,CAAC;AAEvF,MAAM,MAAM,mBAAmB,GAAG;IAChC,SAAS,CAAC,EAAE,MAAM,CAAC;IACnB,OAAO,CAAC,EAAE,MAAM,CAAC;IACjB,WAAW,CAAC,EAAE,8BAA8B,CAAC;CAC9C,CAAC"}
